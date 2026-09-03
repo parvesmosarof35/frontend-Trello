@@ -5,37 +5,16 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import {
-  AlignLeft,
   ArrowRight,
-  Calendar,
-  Check,
-  CheckCircle2,
   CheckSquare,
-  Clock,
   Columns,
-  Cpu,
-  Eye,
   Filter,
-  Flag,
-  Globe,
-  GripVertical,
-  ImageIcon,
-  Layers,
   Loader2,
-  Lock,
-  MessageSquare,
-  Plus,
   Radio,
-  Search,
-  Share2,
   Shield,
   Sparkles,
-  Tag,
   UploadCloud,
-  Users,
   Zap,
-  Rocket,
-  Flame,
 } from 'lucide-react';
 
 const DEMO_USERS = [
@@ -77,7 +56,6 @@ export default function Home() {
   const { user, login } = useAuth();
   const router = useRouter();
   const [loggingInUser, setLoggingInUser] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'high' | 'checklist'>('all');
 
   const handleQuickDemoLogin = async (email: string) => {
     setLoggingInUser(email);
@@ -109,7 +87,7 @@ export default function Home() {
 
       {/* Subheading */}
       <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl leading-relaxed">
-        A state-of-the-art Trello alternative built with Next.js 15, NestJS, and PostgreSQL. Features real-time WebSockets synchronization, atomic multi-column drag-and-drop, interactive subtask checklists, and team collaboration.
+        A state-of-the-art Trello alternative built with Next.js 15, NestJS, and PostgreSQL. Features real-time WebSockets synchronization, atomic multi-column drag-and-drop, interactive subtask checklists, and granular role permissions.
       </p>
 
       {/* Primary Action Buttons */}
@@ -141,7 +119,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* 1-CLICK INSTANT DEMO LOGIN SECTION */}
+      {/* 1-CLICK INSTANT DEMO LOGIN BAR */}
       <div className="mt-12 w-full max-w-4xl p-6 bg-slate-900/90 border border-slate-800/90 rounded-3xl backdrop-blur-xl shadow-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 text-left border-b border-slate-800/80 pb-3">
           <div>
@@ -187,264 +165,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* INTERACTIVE LIVE KANBAN BOARD PREVIEW */}
-      <div className="mt-14 w-full max-w-6xl text-left">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-              <Columns className="w-5 h-5 text-blue-400" />
-              Live Interactive Kanban Showcase
-            </h2>
-            <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              Real-Time Preview
-            </span>
-          </div>
-
-          {/* Filter Pills Demo */}
-          <div className="flex items-center gap-1.5 text-xs">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-                activeTab === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setActiveTab('high')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-semibold transition-all ${
-                activeTab === 'high'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-slate-800 text-slate-400 hover:text-orange-400'
-              }`}
-            >
-              <Flame className="w-3.5 h-3.5" />
-              <span>High Priority</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('checklist')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-semibold transition-all ${
-                activeTab === 'checklist'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-800 text-slate-400 hover:text-emerald-400'
-              }`}
-            >
-              <CheckSquare className="w-3.5 h-3.5" />
-              <span>Subtasks</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Board Simulation Window */}
-        <div className="p-4 sm:p-6 bg-slate-900/90 border border-slate-800 rounded-3xl shadow-2xl backdrop-blur-xl">
-          {/* Header toolbar */}
-          <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Rocket className="w-5 h-5 text-blue-400" />
-                <h3 className="font-bold text-white text-base">E-Commerce Platform V2</h3>
-              </div>
-              <span className="text-[11px] px-2.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full font-medium">
-                6 Tasks
-              </span>
-              <span className="text-[11px] px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                Live Sync Active
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                <div className="w-7 h-7 rounded-full bg-blue-600 border-2 border-slate-900 text-white flex items-center justify-center text-[10px] font-bold">P</div>
-                <div className="w-7 h-7 rounded-full bg-purple-600 border-2 border-slate-900 text-white flex items-center justify-center text-[10px] font-bold">R</div>
-                <div className="w-7 h-7 rounded-full bg-rose-600 border-2 border-slate-900 text-white flex items-center justify-center text-[10px] font-bold">S</div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3 Interactive Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Column 1: To Do */}
-            <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">To Do</span>
-                  <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400">2</span>
-                </div>
-              </div>
-
-              {/* Task 1 */}
-              {(activeTab === 'all' || activeTab === 'high' || activeTab === 'checklist') && (
-                <div className="p-3.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 rounded-2xl space-y-2.5 shadow-md group transition-all">
-                  <div className="relative h-28 w-full rounded-xl overflow-hidden">
-                    <img
-                      src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600"
-                      alt="Product Card"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded bg-black/60 text-[10px] text-slate-200">
-                      Attachment
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-500/15 text-orange-400 border border-orange-500/30 flex items-center gap-1">
-                      <Flag className="w-2.5 h-2.5 fill-orange-400" /> HIGH
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-700/50 text-slate-300 border border-slate-600/50 flex items-center gap-1">
-                      <Clock className="w-2.5 h-2.5" /> In 2 days
-                    </span>
-                  </div>
-
-                  <h4 className="text-xs font-bold text-white leading-snug">
-                    Design high-converting Product Card UI
-                  </h4>
-
-                  <div className="flex flex-wrap gap-1">
-                    <span className="px-1.5 py-0.5 rounded bg-slate-700/40 text-[10px] text-slate-300">Design</span>
-                    <span className="px-1.5 py-0.5 rounded bg-slate-700/40 text-[10px] text-slate-300">UI/UX</span>
-                  </div>
-
-                  {/* Checklist progress */}
-                  <div className="space-y-1 pt-1">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400">
-                      <span className="flex items-center gap-1 font-medium"><CheckSquare className="w-3 h-3 text-blue-400" /> Checklist</span>
-                      <span className="text-slate-300 font-semibold">2/3</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full w-[66%]" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
-                    <span className="font-medium text-slate-300">Sarah Jenkins</span>
-                    <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3 text-slate-500" /> 2</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Task 2 */}
-              {(activeTab === 'all' || activeTab === 'high') && (
-                <div className="p-3.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 rounded-2xl space-y-2.5 shadow-md">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/30 flex items-center gap-1">
-                      <Flag className="w-2.5 h-2.5 fill-red-400" /> URGENT
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-700/50 text-slate-300 border border-slate-600/50 flex items-center gap-1">
-                      <Clock className="w-2.5 h-2.5" /> Tomorrow
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white leading-snug">
-                    Implement Multi-step Checkout with Stripe
-                  </h4>
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
-                    <span className="font-medium text-slate-300">Parves Mosarof</span>
-                    <span className="text-slate-500">Backend</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Column 2: In Progress */}
-            <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">In Progress</span>
-                  <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400">2</span>
-                </div>
-              </div>
-
-              {/* Task 3 */}
-              {(activeTab === 'all' || activeTab === 'high' || activeTab === 'checklist') && (
-                <div className="p-3.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 rounded-2xl space-y-2.5 shadow-md">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-500/15 text-orange-400 border border-orange-500/30 flex items-center gap-1">
-                      <Flag className="w-2.5 h-2.5 fill-orange-400" /> HIGH
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white leading-snug">
-                    Build Drag & Drop Kanban Reordering Engine
-                  </h4>
-
-                  {/* 100% completed checklist */}
-                  <div className="space-y-1 pt-1">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400">
-                      <span className="flex items-center gap-1 font-medium text-emerald-400"><CheckSquare className="w-3 h-3 text-emerald-400" /> Checklist</span>
-                      <span className="text-emerald-400 font-semibold">3/3 Done</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full w-full" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
-                    <span className="font-medium text-slate-300">Rahim Ahmed</span>
-                    <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3 text-slate-500" /> 1</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Task 4 */}
-              {activeTab === 'all' && (
-                <div className="p-3.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 rounded-2xl space-y-2.5 shadow-md">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1">
-                      <Flag className="w-2.5 h-2.5" /> MEDIUM
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white leading-snug">
-                    Setup Cloudinary CDN Image Attachment Pipeline
-                  </h4>
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
-                    <span className="font-medium text-slate-300">Parves Mosarof</span>
-                    <span className="text-slate-500">DevOps</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Column 3: Review & QA */}
-            <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">Review & QA</span>
-                  <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400">1</span>
-                </div>
-              </div>
-
-              {/* Task 5: Overdue showcase */}
-              {activeTab === 'all' && (
-                <div className="p-3.5 bg-slate-800/80 hover:bg-slate-800 border border-red-500/30 rounded-2xl space-y-2.5 shadow-md">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-500/15 text-slate-400 border border-slate-500/30 flex items-center gap-1">
-                      <Flag className="w-2.5 h-2.5" /> LOW
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/20 text-red-300 border border-red-500/40 flex items-center gap-1">
-                      <Clock className="w-2.5 h-2.5" /> Overdue
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white leading-snug">
-                    PostgreSQL Database Indexing & Query Tuning
-                  </h4>
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
-                    <span className="font-medium text-slate-300">Alex Chen</span>
-                    <span className="text-slate-500">Review</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* 6 KEY ARCHITECTURE & ENTERPRISE PILLARS */}
-      <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full text-left">
+      <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full text-left">
         <div className="p-6 bg-slate-900/60 border border-slate-800/80 rounded-3xl hover:border-blue-500/40 transition-all">
           <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-4">
             <Radio className="w-5 h-5" />
