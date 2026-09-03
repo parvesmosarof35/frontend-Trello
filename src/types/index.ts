@@ -20,6 +20,7 @@ export interface Task {
   id: string;
   title: string;
   description?: string | null;
+  imageUrl?: string | null;
   position: number;
   columnId: string;
   creatorId?: string | null;
