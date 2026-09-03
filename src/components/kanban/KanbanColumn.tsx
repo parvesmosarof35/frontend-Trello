@@ -11,8 +11,10 @@ import api from '@/lib/api';
 interface KanbanColumnProps {
   column: Column;
   tasks: Task[];
+  allColumns?: Column[];
   onAddTask: (columnId: string, columnName: string) => void;
   onTaskClick: (task: Task) => void;
+  onQuickMove?: (task: Task, targetColumnId: string) => void;
   onColumnUpdated: (updatedColumn: Column) => void;
   onColumnDeleted: (columnId: string) => void;
 }
@@ -20,8 +22,10 @@ interface KanbanColumnProps {
 export default function KanbanColumn({
   column,
   tasks = [],
+  allColumns = [],
   onAddTask,
   onTaskClick,
+  onQuickMove,
   onColumnUpdated,
   onColumnDeleted,
 }: KanbanColumnProps) {
@@ -68,7 +72,7 @@ export default function KanbanColumn({
   const taskIds = safeTasks.map((t) => t.id);
 
   return (
-    <div className="flex flex-col w-[280px] sm:w-[320px] shrink-0 bg-slate-900/90 border border-slate-800 rounded-2xl max-h-full shadow-md">
+    <div className="flex flex-col w-[280px] sm:w-[320px] shrink-0 bg-slate-900/90 border border-slate-800 rounded-2xl max-h-full shadow-md select-none">
       {/* Column Header */}
       <div className="flex items-center justify-between p-3.5 border-b border-slate-800/80">
         {isEditing ? (
@@ -158,6 +162,8 @@ export default function KanbanColumn({
             <TaskCard
               key={task.id}
               task={task}
+              allColumns={allColumns}
+              onQuickMove={onQuickMove}
               onClick={() => onTaskClick(task)}
             />
           ))}

@@ -1,18 +1,27 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task } from '@/types';
-import { AlignLeft, Calendar, GripVertical } from 'lucide-react';
+import { Column, Task } from '@/types';
+import { AlignLeft, Calendar, GripVertical, MoreVertical, ArrowRight } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 interface TaskCardProps {
   task: Task;
+  allColumns?: Column[];
+  onQuickMove?: (task: Task, targetColumnId: string) => void;
   onClick: () => void;
 }
 
-export default function TaskCard({ task, onClick }: TaskCardProps) {
+export default function TaskCard({
+  task,
+  allColumns = [],
+  onQuickMove,
+  onClick,
+}: TaskCardProps) {
+  const [showMoveMenu, setShowMoveMenu] = useState(false);
+
   const {
     attributes,
     listeners,
@@ -33,6 +42,8 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
     transition,
   };
 
+  const otherColumns = allColumns.filter((c) => c.id !== task.columnId);
+
   if (isDragging) {
     return (
       <div
@@ -50,11 +61,11 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="group relative bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 hover:border-blue-500/50 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-grab active:cursor-grabbing select-none"
+      className="group relative bg-slate-800/90 hover:bg-slate-800 border border-slate-700/60 hover:border-blue-500/50 rounded-xl overflow-visible shadow-sm hover:shadow-lg transition-all cursor-grab active:cursor-grabbing select-none"
     >
       {/* Cover Image Banner */}
       {task.imageUrl && (
-        <div className="h-28 w-full overflow-hidden bg-slate-900/60 border-b border-slate-700/50">
+        <div className="h-28 w-full overflow-hidden bg-slate-900/60 rounded-t-xl border-b border-slate-700/50">
           <img
             src={task.imageUrl}
             alt={task.title}
@@ -69,8 +80,60 @@ export default function TaskCard({ task, onClick }: TaskCardProps) {
             {task.title}
           </h4>
 
-          <div className="p-0.5 text-slate-500 group-hover:text-slate-300 transition-colors">
-            <GripVertical className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Quick Move Trigger for Mobile */}
+            {otherColumns.length > 0 && onQuickMove && (
+              <div
+                className="relative"
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMoveMenu(!showMoveMenu);
+                  }}
+                  title="Move task to column"
+                  className="p-1 text-slate-400 hover:text-white hover:bg-slate-700/60 rounded-lg transition-colors"
+                >
+                  <MoreVertical className="w-3.5 h-3.5" />
+                </button>
+
+                {showMoveMenu && (
+                  <div
+                    className="absolute right-0 top-6 w-44 bg-slate-850 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-30 text-xs text-slate-200 divide-y divide-slate-700/50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="px-2.5 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                      Move to column:
+                    </div>
+                    <div className="py-1">
+                      {otherColumns.map((col) => (
+                        <button
+                          key={col.id}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowMoveMenu(false);
+                            onQuickMove(task, col.id);
+                          }}
+                          className="flex items-center justify-between w-full px-2.5 py-1.5 hover:bg-blue-600/20 hover:text-blue-300 text-left transition-colors"
+                        >
+                          <span className="truncate">{col.name}</span>
+                          <ArrowRight className="w-3 h-3 text-slate-500 shrink-0 ml-1" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="p-0.5 text-slate-500 group-hover:text-slate-300 transition-colors">
+              <GripVertical className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+            </div>
           </div>
         </div>
 
