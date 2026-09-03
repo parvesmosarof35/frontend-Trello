@@ -6,6 +6,11 @@ import Navbar from '@/components/ui/Navbar';
 export const metadata: Metadata = {
   title: 'Mini Trello - Modern Kanban Project Management',
   description: 'Manage tasks, organize workflows, and collaborate with your team seamlessly.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
