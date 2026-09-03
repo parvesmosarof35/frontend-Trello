@@ -48,9 +48,10 @@ export default function TaskCard({
     },
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
+    touchAction: 'manipulation',
   };
 
   const otherColumns = allColumns.filter((c) => c.id !== task.columnId);
@@ -110,7 +111,10 @@ export default function TaskCard({
       style={style}
       {...attributes}
       {...listeners}
-      onClick={onClick}
+      onClick={(e) => {
+        if (isDragging) return;
+        onClick();
+      }}
       className="group relative bg-slate-800/80 hover:bg-slate-800/95 border border-slate-700/60 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/5 rounded-2xl overflow-visible transition-all duration-200 cursor-grab active:cursor-grabbing select-none backdrop-blur-sm"
     >
       {/* Cover Image Banner with subtle overlay & zoom */}

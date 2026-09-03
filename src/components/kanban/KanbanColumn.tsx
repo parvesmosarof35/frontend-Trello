@@ -107,7 +107,9 @@ export default function KanbanColumn({
     }
   };
 
-  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const safeTasks = Array.isArray(tasks)
+    ? tasks.filter((t): t is Task => Boolean(t && t.id))
+    : [];
   const taskIds = safeTasks.map((t) => t.id);
 
   // Column accent colors based on name heuristics
