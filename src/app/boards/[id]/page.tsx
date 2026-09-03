@@ -25,8 +25,10 @@ import {
   CheckSquare,
   MessageSquare,
   Filter,
+  Radio,
 } from 'lucide-react';
 import Link from 'next/link';
+import { getSocket } from '@/lib/socket';
 
 type FilterType = 'all' | 'high_priority' | 'overdue' | 'has_subtasks' | 'has_comments';
 
@@ -92,6 +94,22 @@ export default function BoardDetailPage({
   useEffect(() => {
     if (user && boardId) {
       fetchBoard();
+
+      // Connect to Real-Time WebSockets Room
+      const socket = getSocket();
+      socket.emit('joinBoard', boardId);
+
+      const handleBoardEvent = () => {
+        // Silently refresh board data when collaborators make changes
+        fetchBoard();
+      };
+
+      socket.on('board:event', handleBoardEvent);
+
+      return () => {
+        socket.emit('leaveBoard', boardId);
+        socket.off('board:event', handleBoardEvent);
+      };
     }
   }, [user, boardId]);
 
@@ -321,6 +339,10 @@ export default function BoardDetailPage({
               <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-medium flex items-center gap-1">
                 <Layers className="w-3 h-3" />
                 {totalTasks} {totalTasks === 1 ? 'Task' : 'Tasks'}
+              </span>
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Sync
               </span>
             </div>
           </div>
