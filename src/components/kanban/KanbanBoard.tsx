@@ -29,6 +29,7 @@ interface KanbanBoardProps {
   columns: Column[];
   onColumnsChange: (columns: Column[]) => void;
   onAddTask: (columnId: string, columnName: string) => void;
+  onQuickTaskCreated?: (newTask: Task) => void;
   onTaskClick: (task: Task) => void;
   onColumnUpdated: (updatedColumn: Column) => void;
   onColumnDeleted: (columnId: string) => void;
@@ -49,18 +50,17 @@ export default function KanbanBoard({
   columns,
   onColumnsChange,
   onAddTask,
+  onQuickTaskCreated,
   onTaskClick,
   onColumnUpdated,
   onColumnDeleted,
   renderAddColumn,
 }: KanbanBoardProps) {
-  // Local columns state to isolate drag re-ordering from triggering infinite parent render loops
   const [localColumns, setLocalColumns] = useState<Column[]>(columns);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const activeColIdRef = useRef<string | null>(null);
   const lastOverId = useRef<string | null>(null);
 
-  // Sync local columns when external columns prop changes and no drag is active
   useEffect(() => {
     if (!activeTask) {
       setLocalColumns(columns);
@@ -70,12 +70,12 @@ export default function KanbanBoard({
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 6, // 6px mouse movement before drag begins
+        distance: 6,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 150, // 150ms press for mobile touch
+        delay: 150,
         tolerance: 8,
       },
     }),
@@ -91,21 +91,15 @@ export default function KanbanBoard({
     return cols.find((col) => (col.tasks || []).some((t) => t.id === taskId));
   };
 
-  // Custom collision detection to prevent oscillation between columns on mobile
   const customCollisionDetection: CollisionDetection = (args) => {
-    // First, check pointer collision
     const pointerCollisions = pointerWithin(args);
     if (pointerCollisions.length > 0) {
       return pointerCollisions;
     }
-
-    // Fallback to rectIntersection
     const rectCollisions = rectIntersection(args);
     if (rectCollisions.length > 0) {
       return rectCollisions;
     }
-
-    // Last resort
     const firstCollision = getFirstCollision(rectCollisions, 'id');
     return firstCollision ? [{ id: firstCollision }] : [];
   };
@@ -136,7 +130,6 @@ export default function KanbanBoard({
 
     if (!activeCol || !overCol) return;
 
-    // Only update local state if moving across DIFFERENT columns
     if (activeCol.id !== overCol.id) {
       if (lastOverId.current === overId) return;
       lastOverId.current = overId;
@@ -180,7 +173,6 @@ export default function KanbanBoard({
     lastOverId.current = null;
 
     if (!over || !movingTask) {
-      // Revert if dropped outside
       setLocalColumns(columns);
       return;
     }
@@ -217,7 +209,6 @@ export default function KanbanBoard({
       setLocalColumns(finalColumns);
     }
 
-    // Commit final state to parent and sync to API
     onColumnsChange(finalColumns);
 
     try {
@@ -230,7 +221,6 @@ export default function KanbanBoard({
     }
   };
 
-  // Quick move handler for mobile / 1-tap movement
   const handleQuickMove = async (task: Task, targetColumnId: string) => {
     if (task.columnId === targetColumnId) return;
 
@@ -276,6 +266,7 @@ export default function KanbanBoard({
             tasks={column.tasks || []}
             allColumns={localColumns}
             onAddTask={onAddTask}
+            onQuickTaskCreated={onQuickTaskCreated}
             onTaskClick={onTaskClick}
             onQuickMove={handleQuickMove}
             onColumnUpdated={onColumnUpdated}

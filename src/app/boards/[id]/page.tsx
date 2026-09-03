@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, use, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
@@ -15,9 +15,12 @@ import {
   Edit2,
   Loader2,
   Plus,
+  Search,
   Share2,
   Trash2,
   X,
+  Layers,
+  CheckCircle2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -36,6 +39,7 @@ export default function BoardDetailPage({
   const [columns, setColumns] = useState<Column[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modals & Editing states
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -130,6 +134,25 @@ export default function BoardDetailPage({
     }
   };
 
+  // Filter tasks based on search query
+  const filteredColumns = useMemo(() => {
+    if (!searchQuery.trim()) return columns;
+    const q = searchQuery.toLowerCase().trim();
+    return columns.map((col) => ({
+      ...col,
+      tasks: (col.tasks || []).filter(
+        (t) =>
+          t.title.toLowerCase().includes(q) ||
+          t.description?.toLowerCase().includes(q),
+      ),
+    }));
+  }, [columns, searchQuery]);
+
+  // Quick stats
+  const totalTasks = useMemo(() => {
+    return columns.reduce((acc, col) => acc + (col.tasks?.length || 0), 0);
+  }, [columns]);
+
   if (authLoading || isLoading) {
     return (
       <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
@@ -140,7 +163,7 @@ export default function BoardDetailPage({
 
   if (error || !board) {
     return (
-      <div className="max-w-md mx-auto my-20 p-6 bg-slate-900 border border-slate-800 rounded-2xl text-center">
+      <div className="max-w-md mx-auto my-20 p-6 bg-slate-900 border border-slate-800 rounded-2xl text-center shadow-xl">
         <p className="text-red-400 font-medium mb-4">{error || 'Board not found'}</p>
         <Link
           href="/dashboard"
@@ -154,11 +177,11 @@ export default function BoardDetailPage({
   }
 
   const addColumnRender = (
-    <div className="w-[280px] sm:w-[320px] shrink-0">
+    <div className="w-[290px] sm:w-[325px] shrink-0">
       {isAddingColumn ? (
         <form
           onSubmit={handleAddColumn}
-          className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-3 shadow-md"
+          className="p-4 bg-slate-900/95 border border-blue-500/50 rounded-2xl space-y-3 shadow-xl backdrop-blur-md"
         >
           <input
             type="text"
@@ -166,7 +189,7 @@ export default function BoardDetailPage({
             required
             value={newColumnName}
             onChange={(e) => setNewColumnName(e.target.value)}
-            placeholder="Enter column name..."
+            placeholder="e.g., In Review, QA, Blocked..."
             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <div className="flex items-center gap-2 justify-end">
@@ -180,7 +203,7 @@ export default function BoardDetailPage({
             <button
               type="submit"
               disabled={isCreatingColumn || !newColumnName.trim()}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-xl shadow-md transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-md transition-all"
             >
               {isCreatingColumn ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
               <span>Add Column</span>
@@ -190,9 +213,9 @@ export default function BoardDetailPage({
       ) : (
         <button
           onClick={() => setIsAddingColumn(true)}
-          className="flex items-center justify-center gap-2 w-full py-3.5 bg-slate-900/60 hover:bg-slate-900 border border-dashed border-slate-800 hover:border-slate-700 rounded-2xl text-xs font-medium text-slate-400 hover:text-white transition-all shadow-sm"
+          className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900/50 hover:bg-slate-900/80 border border-dashed border-slate-800 hover:border-blue-500/40 rounded-2xl text-xs font-medium text-slate-400 hover:text-white transition-all shadow-sm group backdrop-blur-sm"
         >
-          <Plus className="w-4 h-4 text-blue-400" />
+          <Plus className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
           <span>Add Another Column</span>
         </button>
       )}
@@ -201,12 +224,12 @@ export default function BoardDetailPage({
 
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col px-3 sm:px-6 lg:px-8 py-3 sm:py-4 overflow-hidden">
-      {/* Board Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-3 sm:pb-4 sm:mb-4 border-b border-slate-800 shrink-0">
-        <div className="flex items-center gap-2.5 min-w-0">
+      {/* Board Top Header with Title, Stats & Action Toolbar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 mb-3 sm:pb-4 sm:mb-4 border-b border-slate-800/80 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/dashboard"
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors shrink-0"
+            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-colors shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -258,18 +281,43 @@ export default function BoardDetailPage({
             </div>
           )}
 
-          <div className="hidden md:flex items-center gap-1.5 ml-2 shrink-0">
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700/60 text-slate-400 font-medium">
+          {/* Quick Info Badges */}
+          <div className="hidden sm:flex items-center gap-2 ml-1 shrink-0">
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-slate-400 font-medium">
               {board.isOwner ? 'Owner' : 'Member'}
+            </span>
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-medium flex items-center gap-1">
+              <Layers className="w-3 h-3" />
+              {totalTasks} {totalTasks === 1 ? 'Task' : 'Tasks'}
             </span>
           </div>
         </div>
 
-        {/* Header Actions */}
-        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+        {/* Action Controls: Search & Share */}
+        <div className="flex items-center gap-2.5 self-stretch sm:self-auto shrink-0">
+          {/* Real-time Task Search Bar */}
+          <div className="relative flex-1 sm:w-52">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search tasks..."
+              className="w-full pl-8 pr-7 py-1.5 bg-slate-800/70 hover:bg-slate-800 border border-slate-700/60 focus:border-blue-500 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
           <button
             onClick={() => setIsShareModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700/60 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700/60 transition-colors shadow-sm shrink-0"
           >
             <Share2 className="w-3.5 h-3.5 text-blue-400" />
             <span>Share ({1 + (board.members?.length || 0)})</span>
@@ -279,7 +327,7 @@ export default function BoardDetailPage({
             <button
               onClick={handleDeleteBoard}
               title="Delete Board"
-              className="p-1.5 sm:p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
+              className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors shrink-0"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -287,12 +335,21 @@ export default function BoardDetailPage({
         </div>
       </div>
 
-      {/* Main Kanban Board with Unified Horizontal Scroll */}
+      {/* Main Kanban Board Area */}
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <KanbanBoard
-          columns={columns}
+          columns={filteredColumns}
           onColumnsChange={setColumns}
           onAddTask={(colId, colName) => setActiveColumnForTask({ id: colId, name: colName })}
+          onQuickTaskCreated={(newTask) => {
+            setColumns(
+              columns.map((col) =>
+                col.id === newTask.columnId
+                  ? { ...col, tasks: [...(col.tasks || []), newTask] }
+                  : col,
+              ),
+            );
+          }}
           onTaskClick={(task) => {
             setSelectedTask(task);
             setIsEditTaskOpen(true);
