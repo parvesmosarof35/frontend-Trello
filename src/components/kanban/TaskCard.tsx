@@ -3,15 +3,18 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Column, Task } from '@/types';
+import { Column, Priority, Task } from '@/types';
 import {
   AlignLeft,
   Calendar,
+  CheckSquare,
+  Flag,
   GripVertical,
+  ImageIcon,
+  MessageSquare,
   MoreVertical,
   ArrowRight,
-  ImageIcon,
-  Sparkles,
+  Clock,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
@@ -52,12 +55,51 @@ export default function TaskCard({
 
   const otherColumns = allColumns.filter((c) => c.id !== task.columnId);
 
+  // Subtask progress calculation
+  const totalSubtasks = task.subtasks?.length || 0;
+  const completedSubtasks =
+    task.subtasks?.filter((st) => st.isCompleted).length || 0;
+  const isAllSubtasksDone = totalSubtasks > 0 && completedSubtasks === totalSubtasks;
+
+  // Due date & overdue calculation
+  const isOverdue =
+    task.dueDate &&
+    new Date(task.dueDate).setHours(23, 59, 59, 999) < new Date().getTime();
+
+  // Priority color styling
+  const getPriorityBadge = (p: Priority) => {
+    switch (p) {
+      case 'URGENT':
+        return {
+          bg: 'bg-red-500/15 text-red-400 border-red-500/30',
+          icon: <Flag className="w-2.5 h-2.5 fill-red-400" />,
+        };
+      case 'HIGH':
+        return {
+          bg: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+          icon: <Flag className="w-2.5 h-2.5 fill-orange-400" />,
+        };
+      case 'LOW':
+        return {
+          bg: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+          icon: <Flag className="w-2.5 h-2.5" />,
+        };
+      default:
+        return {
+          bg: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+          icon: <Flag className="w-2.5 h-2.5" />,
+        };
+    }
+  };
+
+  const priorityStyle = getPriorityBadge(task.priority || 'MEDIUM');
+
   if (isDragging) {
     return (
       <div
         ref={setNodeRef}
         style={style}
-        className="opacity-30 bg-blue-500/10 border-2 border-dashed border-blue-500/60 rounded-2xl min-h-[100px] w-full shadow-inner"
+        className="opacity-30 bg-blue-500/10 border-2 border-dashed border-blue-500/60 rounded-2xl min-h-[110px] w-full shadow-inner"
       />
     );
   }
@@ -88,11 +130,31 @@ export default function TaskCard({
       )}
 
       <div className="p-3.5 space-y-2.5">
-        {/* Title & Quick Move Menu */}
-        <div className="flex items-start justify-between gap-2">
-          <h4 className="text-sm font-semibold text-slate-100 group-hover:text-white leading-snug line-clamp-2 transition-colors">
-            {task.title}
-          </h4>
+        {/* Top Badges: Priority, Due Date & Quick Move */}
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Priority Badge */}
+            <span
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border ${priorityStyle.bg}`}
+            >
+              {priorityStyle.icon}
+              {task.priority || 'MEDIUM'}
+            </span>
+
+            {/* Due Date / Overdue badge */}
+            {task.dueDate && (
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+                  isOverdue
+                    ? 'bg-red-500/20 text-red-300 border-red-500/40'
+                    : 'bg-slate-700/50 text-slate-300 border-slate-600/50'
+                }`}
+              >
+                <Clock className="w-2.5 h-2.5" />
+                {isOverdue ? 'Overdue' : formatDate(task.dueDate)}
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center gap-0.5 shrink-0">
             {/* Quick Move Trigger for Mobile & Desktop */}
@@ -149,6 +211,25 @@ export default function TaskCard({
           </div>
         </div>
 
+        {/* Task Title */}
+        <h4 className="text-sm font-semibold text-slate-100 group-hover:text-white leading-snug line-clamp-2 transition-colors">
+          {task.title}
+        </h4>
+
+        {/* Labels / Tags Pills */}
+        {task.labels && task.labels.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1">
+            {task.labels.map((lbl) => (
+              <span
+                key={lbl}
+                className="px-2 py-0.5 rounded-md bg-slate-700/50 border border-slate-600/40 text-[10px] font-medium text-slate-300"
+              >
+                {lbl}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Task Description Preview */}
         {task.description && (
           <div className="flex items-start gap-1.5 text-xs text-slate-400">
@@ -157,20 +238,55 @@ export default function TaskCard({
           </div>
         )}
 
-        {/* Card Footer: Creator Avatar & Date */}
+        {/* Subtask Progress Bar (if subtasks exist) */}
+        {totalSubtasks > 0 && (
+          <div className="space-y-1 pt-1">
+            <div className="flex items-center justify-between text-[11px] text-slate-400">
+              <span className="flex items-center gap-1 font-medium">
+                <CheckSquare className={`w-3 h-3 ${isAllSubtasksDone ? 'text-emerald-400' : 'text-blue-400'}`} />
+                Checklist
+              </span>
+              <span className={`font-semibold ${isAllSubtasksDone ? 'text-emerald-400' : 'text-slate-300'}`}>
+                {completedSubtasks}/{totalSubtasks}
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${
+                  isAllSubtasksDone
+                    ? 'bg-emerald-500'
+                    : 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                }`}
+                style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Card Footer: Creator Avatar, Comments & Date */}
         <div className="flex items-center justify-between pt-2 border-t border-slate-700/50 text-[11px] text-slate-400">
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-[10px] shadow-sm ring-1 ring-white/10">
               {task.creator?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
-            <span className="truncate max-w-[100px] font-medium text-slate-300">
+            <span className="truncate max-w-[90px] font-medium text-slate-300">
               {task.creator?.name || 'User'}
             </span>
           </div>
 
-          <div className="flex items-center gap-1 text-slate-400 bg-slate-900/40 px-2 py-0.5 rounded-md border border-slate-800">
-            <Calendar className="w-3 h-3 text-slate-500" />
-            <span>{formatDate(task.createdAt)}</span>
+          <div className="flex items-center gap-2">
+            {/* Comment Counter */}
+            {task.comments && task.comments.length > 0 && (
+              <div className="flex items-center gap-1 text-slate-400 hover:text-slate-200">
+                <MessageSquare className="w-3 h-3 text-slate-500" />
+                <span>{task.comments.length}</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1 text-slate-400 bg-slate-900/40 px-2 py-0.5 rounded-md border border-slate-800">
+              <Calendar className="w-3 h-3 text-slate-500" />
+              <span>{formatDate(task.createdAt)}</span>
+            </div>
           </div>
         </div>
       </div>

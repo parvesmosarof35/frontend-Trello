@@ -20,9 +20,15 @@ import {
   Trash2,
   X,
   Layers,
-  CheckCircle2,
+  Flag,
+  Clock,
+  CheckSquare,
+  MessageSquare,
+  Filter,
 } from 'lucide-react';
 import Link from 'next/link';
+
+type FilterType = 'all' | 'high_priority' | 'overdue' | 'has_subtasks' | 'has_comments';
 
 export default function BoardDetailPage({
   params,
@@ -40,6 +46,7 @@ export default function BoardDetailPage({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   // Modals & Editing states
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -134,19 +141,43 @@ export default function BoardDetailPage({
     }
   };
 
-  // Filter tasks based on search query
+  // Filter & Search tasks based on active criteria
   const filteredColumns = useMemo(() => {
-    if (!searchQuery.trim()) return columns;
     const q = searchQuery.toLowerCase().trim();
+    const now = new Date().getTime();
+
     return columns.map((col) => ({
       ...col,
-      tasks: (col.tasks || []).filter(
-        (t) =>
-          t.title.toLowerCase().includes(q) ||
-          t.description?.toLowerCase().includes(q),
-      ),
+      tasks: (col.tasks || []).filter((t) => {
+        // Search query match
+        if (q) {
+          const matchTitle = t.title.toLowerCase().includes(q);
+          const matchDesc = t.description?.toLowerCase().includes(q);
+          const matchLabel = t.labels?.some((l) => l.toLowerCase().includes(q));
+          if (!matchTitle && !matchDesc && !matchLabel) return false;
+        }
+
+        // Active quick filter
+        if (activeFilter === 'high_priority') {
+          return t.priority === 'HIGH' || t.priority === 'URGENT';
+        }
+        if (activeFilter === 'overdue') {
+          return (
+            t.dueDate &&
+            new Date(t.dueDate).setHours(23, 59, 59, 999) < now
+          );
+        }
+        if (activeFilter === 'has_subtasks') {
+          return (t.subtasks?.length || 0) > 0;
+        }
+        if (activeFilter === 'has_comments') {
+          return (t.comments?.length || 0) > 0;
+        }
+
+        return true;
+      }),
     }));
-  }, [columns, searchQuery]);
+  }, [columns, searchQuery, activeFilter]);
 
   // Quick stats
   const totalTasks = useMemo(() => {
@@ -225,113 +256,186 @@ export default function BoardDetailPage({
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col px-3 sm:px-6 lg:px-8 py-3 sm:py-4 overflow-hidden">
       {/* Board Top Header with Title, Stats & Action Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 mb-3 sm:pb-4 sm:mb-4 border-b border-slate-800/80 shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          <Link
-            href="/dashboard"
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-colors shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
+      <div className="flex flex-col gap-3 pb-3 mb-3 border-b border-slate-800/80 shrink-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Link
+              href="/dashboard"
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-colors shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
 
-          {isEditingBoardTitle ? (
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            {isEditingBoardTitle ? (
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <input
+                  type="text"
+                  autoFocus
+                  value={boardTitle}
+                  onChange={(e) => setBoardTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleUpdateBoardName();
+                    if (e.key === 'Escape') setIsEditingBoardTitle(false);
+                  }}
+                  className="w-full max-w-xs px-2.5 py-1 bg-slate-800 border border-blue-500 rounded-lg text-base sm:text-lg font-bold text-white focus:outline-none"
+                />
+                <button
+                  onClick={handleUpdateBoardName}
+                  className="p-1.5 text-green-400 hover:bg-slate-800 rounded-lg shrink-0"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsEditingBoardTitle(false)}
+                  className="p-1.5 text-slate-400 hover:bg-slate-800 rounded-lg shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 min-w-0">
+                <h1
+                  onClick={() => board.isOwner && setIsEditingBoardTitle(true)}
+                  className={`text-lg sm:text-xl font-bold text-white tracking-tight truncate ${
+                    board.isOwner ? 'cursor-pointer hover:text-blue-400' : ''
+                  } transition-colors`}
+                >
+                  {board.name}
+                </h1>
+                {board.isOwner && (
+                  <button
+                    onClick={() => setIsEditingBoardTitle(true)}
+                    className="p-1 text-slate-400 hover:text-white shrink-0"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Quick Info Badges */}
+            <div className="hidden sm:flex items-center gap-2 ml-1 shrink-0">
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-slate-400 font-medium">
+                {board.isOwner ? 'Owner' : 'Member'}
+              </span>
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-medium flex items-center gap-1">
+                <Layers className="w-3 h-3" />
+                {totalTasks} {totalTasks === 1 ? 'Task' : 'Tasks'}
+              </span>
+            </div>
+          </div>
+
+          {/* Action Controls: Search & Share */}
+          <div className="flex items-center gap-2.5 self-stretch sm:self-auto shrink-0">
+            {/* Real-time Task Search Bar */}
+            <div className="relative flex-1 sm:w-52">
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input
                 type="text"
-                autoFocus
-                value={boardTitle}
-                onChange={(e) => setBoardTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleUpdateBoardName();
-                  if (e.key === 'Escape') setIsEditingBoardTitle(false);
-                }}
-                className="w-full max-w-xs px-2.5 py-1 bg-slate-800 border border-blue-500 rounded-lg text-base sm:text-lg font-bold text-white focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tasks or labels..."
+                className="w-full pl-8 pr-7 py-1.5 bg-slate-800/70 hover:bg-slate-800 border border-slate-700/60 focus:border-blue-500 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
               />
-              <button
-                onClick={handleUpdateBoardName}
-                className="p-1.5 text-green-400 hover:bg-slate-800 rounded-lg shrink-0"
-              >
-                <Check className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setIsEditingBoardTitle(false)}
-                className="p-1.5 text-slate-400 hover:bg-slate-800 rounded-lg shrink-0"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 min-w-0">
-              <h1
-                onClick={() => board.isOwner && setIsEditingBoardTitle(true)}
-                className={`text-lg sm:text-xl font-bold text-white tracking-tight truncate ${
-                  board.isOwner ? 'cursor-pointer hover:text-blue-400' : ''
-                } transition-colors`}
-              >
-                {board.name}
-              </h1>
-              {board.isOwner && (
+              {searchQuery && (
                 <button
-                  onClick={() => setIsEditingBoardTitle(true)}
-                  className="p-1 text-slate-400 hover:text-white shrink-0"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
                 >
-                  <Edit2 className="w-3.5 h-3.5" />
+                  <X className="w-3 h-3" />
                 </button>
               )}
             </div>
-          )}
 
-          {/* Quick Info Badges */}
-          <div className="hidden sm:flex items-center gap-2 ml-1 shrink-0">
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-slate-400 font-medium">
-              {board.isOwner ? 'Owner' : 'Member'}
-            </span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-medium flex items-center gap-1">
-              <Layers className="w-3 h-3" />
-              {totalTasks} {totalTasks === 1 ? 'Task' : 'Tasks'}
-            </span>
-          </div>
-        </div>
+            <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700/60 transition-colors shadow-sm shrink-0"
+            >
+              <Share2 className="w-3.5 h-3.5 text-blue-400" />
+              <span>Share ({1 + (board.members?.length || 0)})</span>
+            </button>
 
-        {/* Action Controls: Search & Share */}
-        <div className="flex items-center gap-2.5 self-stretch sm:self-auto shrink-0">
-          {/* Real-time Task Search Bar */}
-          <div className="relative flex-1 sm:w-52">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tasks..."
-              className="w-full pl-8 pr-7 py-1.5 bg-slate-800/70 hover:bg-slate-800 border border-slate-700/60 focus:border-blue-500 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none transition-colors"
-            />
-            {searchQuery && (
+            {board.isOwner && (
               <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                onClick={handleDeleteBoard}
+                title="Delete Board"
+                className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors shrink-0"
               >
-                <X className="w-3 h-3" />
+                <Trash2 className="w-4 h-4" />
               </button>
             )}
           </div>
+        </div>
+
+        {/* 1-Click Quick Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+          <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1 shrink-0 mr-1">
+            <Filter className="w-3 h-3" /> Filter:
+          </span>
 
           <button
-            onClick={() => setIsShareModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700/60 transition-colors shadow-sm shrink-0"
+            type="button"
+            onClick={() => setActiveFilter('all')}
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+              activeFilter === 'all'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-slate-800/70 text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
           >
-            <Share2 className="w-3.5 h-3.5 text-blue-400" />
-            <span>Share ({1 + (board.members?.length || 0)})</span>
+            All Tasks
           </button>
 
-          {board.isOwner && (
-            <button
-              onClick={handleDeleteBoard}
-              title="Delete Board"
-              className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors shrink-0"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setActiveFilter('high_priority')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+              activeFilter === 'high_priority'
+                ? 'bg-orange-600 text-white shadow-sm'
+                : 'bg-slate-800/70 text-slate-400 hover:text-orange-400 hover:bg-slate-800'
+            }`}
+          >
+            <Flag className="w-3 h-3" />
+            <span>High Priority</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveFilter('overdue')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+              activeFilter === 'overdue'
+                ? 'bg-red-600 text-white shadow-sm'
+                : 'bg-slate-800/70 text-slate-400 hover:text-red-400 hover:bg-slate-800'
+            }`}
+          >
+            <Clock className="w-3 h-3" />
+            <span>Overdue</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveFilter('has_subtasks')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+              activeFilter === 'has_subtasks'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-slate-800/70 text-slate-400 hover:text-emerald-400 hover:bg-slate-800'
+            }`}
+          >
+            <CheckSquare className="w-3 h-3" />
+            <span>Checklist</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveFilter('has_comments')}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+              activeFilter === 'has_comments'
+                ? 'bg-purple-600 text-white shadow-sm'
+                : 'bg-slate-800/70 text-slate-400 hover:text-purple-400 hover:bg-slate-800'
+            }`}
+          >
+            <MessageSquare className="w-3 h-3" />
+            <span>Comments</span>
+          </button>
         </div>
       </div>
 
@@ -345,7 +449,7 @@ export default function BoardDetailPage({
             setColumns(
               columns.map((col) =>
                 col.id === newTask.columnId
-                  ? { ...col, tasks: [...(col.tasks || []), newTask] }
+                  ? { ...col, tasks: [...(col.tasks || []), { ...newTask, priority: newTask.priority || 'MEDIUM', labels: newTask.labels || [] }] }
                   : col,
               ),
             );
