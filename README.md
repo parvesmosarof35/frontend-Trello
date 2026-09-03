@@ -88,11 +88,17 @@ Frontend/
 - Running backend server (local or deployed)
 
 ### 2. Environment Variables (`Frontend/.env.local`)
+Create a `.env.local` file from the provided `.env.example`:
+```bash
+cp .env.example .env.local
+```
+
+Configure your environment variables:
 ```env
-NEXT_PUBLIC_API_URL=https://trello-trellobackend-oh99sz-6fe50c-2-24-82-111.sslip.io/api
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=dhxyjdrvr
-NEXT_PUBLIC_CLOUDINARY_API_KEY=911115682562965
-NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=cloudinaryPractice
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+NEXT_PUBLIC_CLOUDINARY_API_KEY=your_api_key
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 ```
 
 ### 3. Install & Start Development Server
