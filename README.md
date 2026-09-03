@@ -24,8 +24,10 @@ You can immediately log in to test the application using either of the pre-seede
 
 | User Name | Email | Password | Role & Access |
 | :--- | :--- | :--- | :--- |
-| **Parves Mosarof** | `parves@trello.com` | `password123` | Owner of E-Commerce Platform V2 |
-| **Rahim Ahmed** | `rahim@trello.com` | `password123` | Owner of Mobile App Roadmap |
+| **Parves Mosarof** | `parves@trello.com` | `password123` | Owner of `🚀 E-Commerce Platform V2` |
+| **Rahim Ahmed** | `rahim@trello.com` | `password123` | Owner of `📱 Mobile Application` |
+| **Sarah Jenkins** | `sarah@trello.com` | `password123` | Owner of `🎨 Brand Redesign & Marketing` |
+| **Alex Chen** | `alex@trello.com` | `password123` | DevOps & Cloud Engineer (Collaborator) |
 
 ---
 
