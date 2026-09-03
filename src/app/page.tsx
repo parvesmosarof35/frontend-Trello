@@ -16,6 +16,7 @@ import {
   UploadCloud,
   Zap,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const DEMO_USERS = [
   {
@@ -61,9 +62,10 @@ export default function Home() {
     setLoggingInUser(email);
     try {
       await login(email, 'password123');
+      toast.success('Logged in successfully!');
       router.push('/dashboard');
     } catch (err: any) {
-      alert(err.message || 'Demo login failed');
+      toast.error(err.message || 'Demo login failed');
     } finally {
       setLoggingInUser(null);
     }

@@ -7,6 +7,8 @@ import { Column, Task } from '@/types';
 import TaskCard from './TaskCard';
 import { Plus, MoreHorizontal, Trash2, Edit2, Check, X, Sparkles, CornerDownLeft } from 'lucide-react';
 import api from '@/lib/api';
+import ConfirmDeleteModal from '../modals/ConfirmDeleteModal';
+import toast from 'react-hot-toast';
 
 interface KanbanColumnProps {
   column: Column;
@@ -34,6 +36,8 @@ export default function KanbanColumn({
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(column.name);
   const [showMenu, setShowMenu] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Inline quick task addition
   const [isQuickAdding, setIsQuickAdding] = useState(false);
@@ -60,18 +64,23 @@ export default function KanbanColumn({
       });
       onColumnUpdated(data);
       setIsEditing(false);
+      toast.success('Column renamed');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to update column name');
+      toast.error(err.response?.data?.message || 'Failed to update column name');
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm(`Delete column "${column.name}" and all its tasks?`)) return;
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
     try {
       await api.delete(`/columns/${column.id}`);
       onColumnDeleted(column.id);
+      toast.success(`Column "${column.name}" deleted`);
+      setIsDeleteModalOpen(false);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete column');
+      toast.error(err.response?.data?.message || 'Failed to delete column');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -90,8 +99,9 @@ export default function KanbanColumn({
       }
       setQuickTitle('');
       setIsQuickAdding(false);
+      toast.success('Task created');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to add quick task');
+      toast.error(err.response?.data?.message || 'Failed to add quick task');
     } finally {
       setIsSubmittingQuick(false);
     }
@@ -179,7 +189,7 @@ export default function KanbanColumn({
               <button
                 onClick={() => {
                   setShowMenu(false);
-                  handleDelete();
+                  setIsDeleteModalOpen(true);
                 }}
                 className="flex items-center gap-2 w-full px-3 py-2 text-red-400 hover:bg-red-500/10 text-left transition-colors"
               >
@@ -284,6 +294,17 @@ export default function KanbanColumn({
           <Sparkles className="w-3.5 h-3.5" />
         </button>
       </div>
+
+      {/* Modern Confirm Delete Column Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Column"
+        description={`Are you sure you want to delete column "${column.name}" and all ${safeTasks.length} task(s) inside it? This cannot be undone.`}
+        confirmText="Delete Column"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

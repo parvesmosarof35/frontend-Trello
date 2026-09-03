@@ -9,6 +9,8 @@ import KanbanBoard from '@/components/kanban/KanbanBoard';
 import CreateTaskModal from '@/components/modals/CreateTaskModal';
 import EditTaskModal from '@/components/modals/EditTaskModal';
 import ShareBoardModal from '@/components/modals/ShareBoardModal';
+import ConfirmDeleteModal from '@/components/modals/ConfirmDeleteModal';
+import toast from 'react-hot-toast';
 import {
   ArrowLeft,
   Check,
@@ -73,6 +75,8 @@ export default function BoardDetailPage({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
+  const [isDeleteBoardModalOpen, setIsDeleteBoardModalOpen] = useState(false);
+  const [isDeletingBoard, setIsDeletingBoard] = useState(false);
 
   // New Column
   const [isAddingColumn, setIsAddingColumn] = useState(false);
@@ -144,18 +148,23 @@ export default function BoardDetailPage({
       });
       setBoard((prev) => (prev ? { ...prev, name: data.name } : null));
       setIsEditingBoardTitle(false);
+      toast.success('Board renamed successfully');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to rename board');
+      toast.error(err.response?.data?.message || 'Failed to rename board');
     }
   };
 
-  const handleDeleteBoard = async () => {
-    if (!confirm('Are you sure you want to permanently delete this board?')) return;
+  const handleConfirmDeleteBoard = async () => {
+    setIsDeletingBoard(true);
     try {
       await api.delete(`/boards/${boardId}`);
+      toast.success('Board deleted successfully');
       router.push('/dashboard');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete board');
+      toast.error(err.response?.data?.message || 'Failed to delete board');
+    } finally {
+      setIsDeletingBoard(false);
+      setIsDeleteBoardModalOpen(false);
     }
   };
 
@@ -171,8 +180,9 @@ export default function BoardDetailPage({
       setColumns([...columns, { ...data, tasks: [] }]);
       setNewColumnName('');
       setIsAddingColumn(false);
+      toast.success(`Column "${data.name}" added`);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to add column');
+      toast.error(err.response?.data?.message || 'Failed to add column');
     } finally {
       setIsCreatingColumn(false);
     }
@@ -399,7 +409,7 @@ export default function BoardDetailPage({
 
             {board.isOwner && (
               <button
-                onClick={handleDeleteBoard}
+                onClick={() => setIsDeleteBoardModalOpen(true)}
                 title="Delete Board"
                 className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors shrink-0"
               >
@@ -561,6 +571,17 @@ export default function BoardDetailPage({
             })),
           );
         }}
+      />
+
+      {/* Modern Confirm Delete Board Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteBoardModalOpen}
+        onClose={() => setIsDeleteBoardModalOpen(false)}
+        onConfirm={handleConfirmDeleteBoard}
+        title="Delete Board"
+        description={`Are you sure you want to permanently delete "${board.name}"? All columns, tasks, and attachments will be deleted permanently.`}
+        confirmText="Delete Board"
+        isLoading={isDeletingBoard}
       />
     </div>
   );

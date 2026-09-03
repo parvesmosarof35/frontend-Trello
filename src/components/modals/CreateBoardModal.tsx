@@ -5,6 +5,7 @@ import Modal from '../ui/Modal';
 import api from '@/lib/api';
 import { Board } from '@/types';
 import { Loader2, Plus } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface CreateBoardModalProps {
   isOpen: boolean;
@@ -35,11 +36,13 @@ export default function CreateBoardModal({
         description: description.trim() || undefined,
       });
       onBoardCreated(data);
+      toast.success(`Board "${data.name}" created`);
       setName('');
       setDescription('');
       onClose();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create board');
+      toast.error(err.response?.data?.message || 'Failed to create board');
     } finally {
       setIsLoading(false);
     }
