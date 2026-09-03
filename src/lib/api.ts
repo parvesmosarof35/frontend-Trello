@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL ||
+    'https://trello-trellobackend-oh99sz-6fe50c-2-24-82-111.sslip.io/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,7 +26,10 @@ api.interceptors.response.use(
       if (typeof window !== 'undefined') {
         localStorage.removeItem('trello_token');
         localStorage.removeItem('trello_user');
-        if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+        if (
+          !window.location.pathname.startsWith('/login') &&
+          !window.location.pathname.startsWith('/register')
+        ) {
           window.location.href = '/login';
         }
       }
