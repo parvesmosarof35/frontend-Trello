@@ -17,7 +17,6 @@ import {
   Plus,
   Share2,
   Trash2,
-  Users,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -154,20 +153,66 @@ export default function BoardDetailPage({
     );
   }
 
+  const addColumnRender = (
+    <div className="w-[280px] sm:w-[320px] shrink-0">
+      {isAddingColumn ? (
+        <form
+          onSubmit={handleAddColumn}
+          className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-3 shadow-md"
+        >
+          <input
+            type="text"
+            autoFocus
+            required
+            value={newColumnName}
+            onChange={(e) => setNewColumnName(e.target.value)}
+            placeholder="Enter column name..."
+            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => setIsAddingColumn(false)}
+              className="px-3 py-1.5 text-xs text-slate-400 hover:text-white rounded-lg"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isCreatingColumn || !newColumnName.trim()}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-xl shadow-md transition-all"
+            >
+              {isCreatingColumn ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              <span>Add Column</span>
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          onClick={() => setIsAddingColumn(true)}
+          className="flex items-center justify-center gap-2 w-full py-3.5 bg-slate-900/60 hover:bg-slate-900 border border-dashed border-slate-800 hover:border-slate-700 rounded-2xl text-xs font-medium text-slate-400 hover:text-white transition-all shadow-sm"
+        >
+          <Plus className="w-4 h-4 text-blue-400" />
+          <span>Add Another Column</span>
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <div className="h-[calc(100vh-64px)] flex flex-col px-4 sm:px-6 lg:px-8 py-4 overflow-hidden">
+    <div className="h-[calc(100vh-64px)] flex flex-col px-3 sm:px-6 lg:px-8 py-3 sm:py-4 overflow-hidden">
       {/* Board Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 mb-4 border-b border-slate-800 shrink-0">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-3 sm:pb-4 sm:mb-4 border-b border-slate-800 shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
           <Link
             href="/dashboard"
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
 
           {isEditingBoardTitle ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <input
                 type="text"
                 autoFocus
@@ -177,26 +222,26 @@ export default function BoardDetailPage({
                   if (e.key === 'Enter') handleUpdateBoardName();
                   if (e.key === 'Escape') setIsEditingBoardTitle(false);
                 }}
-                className="px-2.5 py-1 bg-slate-800 border border-blue-500 rounded-lg text-lg font-bold text-white focus:outline-none"
+                className="w-full max-w-xs px-2.5 py-1 bg-slate-800 border border-blue-500 rounded-lg text-base sm:text-lg font-bold text-white focus:outline-none"
               />
               <button
                 onClick={handleUpdateBoardName}
-                className="p-1.5 text-green-400 hover:bg-slate-800 rounded-lg"
+                className="p-1.5 text-green-400 hover:bg-slate-800 rounded-lg shrink-0"
               >
                 <Check className="w-4 h-4" />
               </button>
               <button
                 onClick={() => setIsEditingBoardTitle(false)}
-                className="p-1.5 text-slate-400 hover:bg-slate-800 rounded-lg"
+                className="p-1.5 text-slate-400 hover:bg-slate-800 rounded-lg shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <h1
                 onClick={() => board.isOwner && setIsEditingBoardTitle(true)}
-                className={`text-xl font-bold text-white tracking-tight ${
+                className={`text-lg sm:text-xl font-bold text-white tracking-tight truncate ${
                   board.isOwner ? 'cursor-pointer hover:text-blue-400' : ''
                 } transition-colors`}
               >
@@ -205,7 +250,7 @@ export default function BoardDetailPage({
               {board.isOwner && (
                 <button
                   onClick={() => setIsEditingBoardTitle(true)}
-                  className="p-1 text-slate-400 hover:text-white"
+                  className="p-1 text-slate-400 hover:text-white shrink-0"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
@@ -213,18 +258,18 @@ export default function BoardDetailPage({
             </div>
           )}
 
-          <div className="hidden sm:flex items-center gap-1.5 ml-2">
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700/60 text-slate-400 font-medium">
+          <div className="hidden md:flex items-center gap-1.5 ml-2 shrink-0">
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700/60 text-slate-400 font-medium">
               {board.isOwner ? 'Owner' : 'Member'}
             </span>
           </div>
         </div>
 
         {/* Header Actions */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
           <button
             onClick={() => setIsShareModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700/60 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-xl border border-slate-700/60 transition-colors shadow-sm"
           >
             <Share2 className="w-3.5 h-3.5 text-blue-400" />
             <span>Share ({1 + (board.members?.length || 0)})</span>
@@ -234,7 +279,7 @@ export default function BoardDetailPage({
             <button
               onClick={handleDeleteBoard}
               title="Delete Board"
-              className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
+              className="p-1.5 sm:p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -242,8 +287,8 @@ export default function BoardDetailPage({
         </div>
       </div>
 
-      {/* Main Kanban Content Area */}
-      <div className="flex-1 flex gap-4 overflow-hidden">
+      {/* Main Kanban Board with Unified Horizontal Scroll */}
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <KanbanBoard
           columns={columns}
           onColumnsChange={setColumns}
@@ -258,52 +303,8 @@ export default function BoardDetailPage({
           onColumnDeleted={(colId) => {
             setColumns(columns.filter((c) => c.id !== colId));
           }}
+          renderAddColumn={addColumnRender}
         />
-
-        {/* Add Column Section */}
-        <div className="w-80 shrink-0">
-          {isAddingColumn ? (
-            <form
-              onSubmit={handleAddColumn}
-              className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-3"
-            >
-              <input
-                type="text"
-                autoFocus
-                required
-                value={newColumnName}
-                onChange={(e) => setNewColumnName(e.target.value)}
-                placeholder="Enter column name..."
-                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <div className="flex items-center gap-2 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setIsAddingColumn(false)}
-                  className="px-3 py-1.5 text-xs text-slate-400 hover:text-white rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreatingColumn || !newColumnName.trim()}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-xl shadow-md transition-all"
-                >
-                  {isCreatingColumn ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                  <span>Add Column</span>
-                </button>
-              </div>
-            </form>
-          ) : (
-            <button
-              onClick={() => setIsAddingColumn(true)}
-              className="flex items-center justify-center gap-2 w-full py-3 bg-slate-900/60 hover:bg-slate-900 border border-dashed border-slate-800 hover:border-slate-700 rounded-2xl text-xs font-medium text-slate-400 hover:text-white transition-all"
-            >
-              <Plus className="w-4 h-4 text-blue-400" />
-              <span>Add Another Column</span>
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Share Board Modal */}

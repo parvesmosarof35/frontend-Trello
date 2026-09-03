@@ -6,12 +6,15 @@ import {
   DragOverlay,
   closestCorners,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragStartEvent,
   DragOverEvent,
   DragEndEvent,
+  defaultDropAnimationSideEffects,
+  DropAnimation,
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Column, Task } from '@/types';
@@ -26,7 +29,18 @@ interface KanbanBoardProps {
   onTaskClick: (task: Task) => void;
   onColumnUpdated: (updatedColumn: Column) => void;
   onColumnDeleted: (columnId: string) => void;
+  renderAddColumn?: React.ReactNode;
 }
+
+const dropAnimationConfig: DropAnimation = {
+  sideEffects: defaultDropAnimationSideEffects({
+    styles: {
+      active: {
+        opacity: '0.4',
+      },
+    },
+  }),
+};
 
 export default function KanbanBoard({
   columns,
@@ -35,13 +49,20 @@ export default function KanbanBoard({
   onTaskClick,
   onColumnUpdated,
   onColumnDeleted,
+  renderAddColumn,
 }: KanbanBoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 5, // Avoid accidental drags when clicking
+        distance: 5, // 5px movement required before dragging begins
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms hold for mobile touch dragging
+        tolerance: 6,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -65,8 +86,8 @@ export default function KanbanBoard({
     const { active, over } = event;
     if (!over) return;
 
-    const activeId = active.id as string;
-    const overId = over.id as string;
+    const activeId = String(active.id);
+    const overId = String(over.id);
 
     if (activeId === overId) return;
 
@@ -83,23 +104,20 @@ export default function KanbanBoard({
     const overTasks = [...(overCol.tasks || [])];
 
     const activeIndex = activeTasks.findIndex((t) => t.id === activeId);
-    const movingTask = activeTasks[activeIndex];
+    if (activeIndex === -1) return;
 
+    const [movingTask] = activeTasks.splice(activeIndex, 1);
     if (!movingTask) return;
 
-    // Remove from active column
-    activeTasks.splice(activeIndex, 1);
-
-    // Insert into over column
     const overIndex = overTasks.findIndex((t) => t.id === overId);
-    const newIndex = overIndex >= 0 ? overIndex : overTasks.length;
+    const insertIndex = overIndex >= 0 ? overIndex : overTasks.length;
 
     const updatedMovingTask = {
       ...movingTask,
       columnId: overCol.id,
     };
 
-    overTasks.splice(newIndex, 0, updatedMovingTask);
+    overTasks.splice(insertIndex, 0, updatedMovingTask);
 
     const newColumns = columns.map((col) => {
       if (col.id === activeCol.id) return { ...col, tasks: activeTasks };
@@ -112,57 +130,46 @@ export default function KanbanBoard({
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    const currentActiveTask = activeTask;
     setActiveTask(null);
 
-    if (!over) return;
+    if (!over || !currentActiveTask) return;
 
-    const activeId = active.id as string;
-    const overId = over.id as string;
+    const activeId = String(active.id);
+    const overId = String(over.id);
 
-    const activeCol = findColumnOfTask(activeId);
-    const overCol =
-      findColumnOfTask(overId) || columns.find((col) => col.id === overId);
+    const targetCol =
+      findColumnOfTask(activeId) ||
+      findColumnOfTask(overId) ||
+      columns.find((col) => col.id === overId);
 
-    if (!activeCol || !overCol) return;
+    if (!targetCol) return;
 
-    const sourceColId = activeCol.id;
-    const targetColId = overCol.id;
-
-    const tasksInTarget = overCol.tasks || [];
-    const activeIndex = (activeCol.tasks || []).findIndex((t) => t.id === activeId);
+    const tasksInTarget = targetCol.tasks || [];
+    const activeIndex = tasksInTarget.findIndex((t) => t.id === activeId);
     let targetIndex = tasksInTarget.findIndex((t) => t.id === overId);
 
     if (targetIndex < 0) {
-      targetIndex = tasksInTarget.length > 0 ? tasksInTarget.length - 1 : 0;
+      targetIndex = activeIndex >= 0 ? activeIndex : tasksInTarget.length - 1;
+    }
+    if (targetIndex < 0) targetIndex = 0;
+
+    if (activeIndex !== -1 && activeIndex !== targetIndex) {
+      const reordered = arrayMove(tasksInTarget, activeIndex, targetIndex);
+      const updatedColumns = columns.map((col) =>
+        col.id === targetCol.id ? { ...col, tasks: reordered } : col,
+      );
+      onColumnsChange(updatedColumns);
     }
 
-    if (sourceColId === targetColId) {
-      if (activeIndex !== targetIndex && activeIndex >= 0 && targetIndex >= 0) {
-        const reorderedTasks = arrayMove(tasksInTarget, activeIndex, targetIndex);
-        const updatedColumns = columns.map((col) =>
-          col.id === targetColId ? { ...col, tasks: reorderedTasks } : col,
-        );
-        onColumnsChange(updatedColumns);
-
-        try {
-          await api.patch(`/tasks/${activeId}/move`, {
-            targetColumnId: targetColId,
-            targetIndex,
-          });
-        } catch (error) {
-          console.error('Failed to persist task reorder:', error);
-        }
-      }
-    } else {
-      // Cross column drop
-      try {
-        await api.patch(`/tasks/${activeId}/move`, {
-          targetColumnId: targetColId,
-          targetIndex,
-        });
-      } catch (error) {
-        console.error('Failed to persist cross-column task move:', error);
-      }
+    // Sync position with backend
+    try {
+      await api.patch(`/tasks/${activeId}/move`, {
+        targetColumnId: targetCol.id,
+        targetIndex,
+      });
+    } catch (error) {
+      console.error('Failed to sync task position with backend:', error);
     }
   };
 
@@ -174,7 +181,7 @@ export default function KanbanBoard({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 items-start overflow-x-auto pb-4 h-[calc(100vh-140px)]">
+      <div className="flex-1 flex gap-4 items-start overflow-x-auto overflow-y-hidden pb-4 h-full min-h-0 touch-pan-x">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}
@@ -186,10 +193,16 @@ export default function KanbanBoard({
             onColumnDeleted={onColumnDeleted}
           />
         ))}
+
+        {renderAddColumn}
       </div>
 
-      <DragOverlay>
-        {activeTask ? <DragOverlayTask task={activeTask} /> : null}
+      <DragOverlay dropAnimation={dropAnimationConfig}>
+        {activeTask ? (
+          <div className="pointer-events-none rotate-2 scale-105">
+            <DragOverlayTask task={activeTask} />
+          </div>
+        ) : null}
       </DragOverlay>
     </DndContext>
   );

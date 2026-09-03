@@ -19,7 +19,7 @@ interface KanbanColumnProps {
 
 export default function KanbanColumn({
   column,
-  tasks,
+  tasks = [],
   onAddTask,
   onTaskClick,
   onColumnUpdated,
@@ -64,10 +64,11 @@ export default function KanbanColumn({
     }
   };
 
-  const taskIds = tasks.map((t) => t.id);
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const taskIds = safeTasks.map((t) => t.id);
 
   return (
-    <div className="flex flex-col w-80 shrink-0 bg-slate-900/90 border border-slate-800 rounded-2xl max-h-full">
+    <div className="flex flex-col w-[280px] sm:w-[320px] shrink-0 bg-slate-900/90 border border-slate-800 rounded-2xl max-h-full shadow-md">
       {/* Column Header */}
       <div className="flex items-center justify-between p-3.5 border-b border-slate-800/80">
         {isEditing ? (
@@ -97,20 +98,20 @@ export default function KanbanColumn({
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <h3
               onClick={() => setIsEditing(true)}
-              className="font-semibold text-sm text-slate-200 hover:text-white cursor-pointer transition-colors"
+              className="font-semibold text-sm text-slate-200 hover:text-white cursor-pointer transition-colors truncate"
             >
               {column.name}
             </h3>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/50">
-              {tasks.length}
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/50 shrink-0">
+              {safeTasks.length}
             </span>
           </div>
         )}
 
-        <div className="relative">
+        <div className="relative shrink-0">
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
@@ -148,12 +149,12 @@ export default function KanbanColumn({
       {/* Droppable Task List */}
       <div
         ref={setNodeRef}
-        className={`flex-1 overflow-y-auto p-3 space-y-2.5 min-h-[140px] transition-colors ${
-          isOver ? 'bg-blue-500/5 ring-1 ring-blue-500/30 rounded-xl m-1' : ''
+        className={`flex-1 overflow-y-auto p-3 space-y-2.5 min-h-[140px] max-h-[calc(100vh-250px)] transition-colors ${
+          isOver ? 'bg-blue-500/5 ring-1 ring-blue-500/40 rounded-xl m-1' : ''
         }`}
       >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-          {tasks.map((task) => (
+          {safeTasks.map((task) => (
             <TaskCard
               key={task.id}
               task={task}
@@ -162,7 +163,7 @@ export default function KanbanColumn({
           ))}
         </SortableContext>
 
-        {tasks.length === 0 && !isOver && (
+        {safeTasks.length === 0 && !isOver && (
           <div className="h-24 border border-dashed border-slate-800 rounded-xl flex items-center justify-center text-xs text-slate-500 select-none">
             Drop task here
           </div>
