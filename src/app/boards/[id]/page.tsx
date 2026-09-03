@@ -26,9 +26,28 @@ import {
   MessageSquare,
   Filter,
   Radio,
+  Rocket,
+  Smartphone,
+  Palette,
+  LayoutDashboard,
+  Flame,
 } from 'lucide-react';
 import Link from 'next/link';
 import { getSocket } from '@/lib/socket';
+
+const getBoardLucideIcon = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes('commerce') || n.includes('launch') || n.includes('v2')) {
+    return <Rocket className="w-5 h-5 text-blue-400 shrink-0" />;
+  }
+  if (n.includes('mobile') || n.includes('app') || n.includes('ios') || n.includes('android')) {
+    return <Smartphone className="w-5 h-5 text-purple-400 shrink-0" />;
+  }
+  if (n.includes('brand') || n.includes('design') || n.includes('marketing')) {
+    return <Palette className="w-5 h-5 text-amber-400 shrink-0" />;
+  }
+  return <LayoutDashboard className="w-5 h-5 text-blue-400 shrink-0" />;
+};
 
 type FilterType = 'all' | 'high_priority' | 'overdue' | 'has_subtasks' | 'has_comments';
 
@@ -311,7 +330,8 @@ export default function BoardDetailPage({
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {getBoardLucideIcon(board.name)}
                 <h1
                   onClick={() => board.isOwner && setIsEditingBoardTitle(true)}
                   className={`text-lg sm:text-xl font-bold text-white tracking-tight truncate ${
@@ -416,7 +436,7 @@ export default function BoardDetailPage({
                 : 'bg-slate-800/70 text-slate-400 hover:text-orange-400 hover:bg-slate-800'
             }`}
           >
-            <Flag className="w-3 h-3" />
+            <Flame className="w-3.5 h-3.5 text-orange-400" />
             <span>High Priority</span>
           </button>
 
@@ -429,7 +449,7 @@ export default function BoardDetailPage({
                 : 'bg-slate-800/70 text-slate-400 hover:text-red-400 hover:bg-slate-800'
             }`}
           >
-            <Clock className="w-3 h-3" />
+            <Clock className="w-3.5 h-3.5 text-red-400" />
             <span>Overdue</span>
           </button>
 
@@ -442,7 +462,7 @@ export default function BoardDetailPage({
                 : 'bg-slate-800/70 text-slate-400 hover:text-emerald-400 hover:bg-slate-800'
             }`}
           >
-            <CheckSquare className="w-3 h-3" />
+            <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
             <span>Checklist</span>
           </button>
 
@@ -455,7 +475,7 @@ export default function BoardDetailPage({
                 : 'bg-slate-800/70 text-slate-400 hover:text-purple-400 hover:bg-slate-800'
             }`}
           >
-            <MessageSquare className="w-3 h-3" />
+            <MessageSquare className="w-3.5 h-3.5 text-purple-400" />
             <span>Comments</span>
           </button>
         </div>

@@ -34,6 +34,8 @@ import {
   UploadCloud,
   Users,
   Zap,
+  Rocket,
+  Flame,
 } from 'lucide-react';
 
 const DEMO_USERS = [
@@ -43,7 +45,7 @@ const DEMO_USERS = [
     role: 'Lead Full-Stack Dev',
     color: 'from-blue-600 to-indigo-600',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-    board: '🚀 E-Commerce Platform V2',
+    board: 'E-Commerce Platform V2',
   },
   {
     name: 'Rahim Ahmed',
@@ -51,7 +53,7 @@ const DEMO_USERS = [
     role: 'Senior Mobile Dev',
     color: 'from-purple-600 to-pink-600',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    board: '📱 Mobile Application',
+    board: 'Mobile Application',
   },
   {
     name: 'Sarah Jenkins',
@@ -59,7 +61,7 @@ const DEMO_USERS = [
     role: 'Lead UI/UX Designer',
     color: 'from-amber-500 to-rose-500',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    board: '🎨 Brand Redesign & Marketing',
+    board: 'Brand Redesign & Marketing',
   },
   {
     name: 'Alex Chen',
@@ -213,23 +215,25 @@ export default function Home() {
             </button>
             <button
               onClick={() => setActiveTab('high')}
-              className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-semibold transition-all ${
                 activeTab === 'high'
                   ? 'bg-orange-600 text-white'
                   : 'bg-slate-800 text-slate-400 hover:text-orange-400'
               }`}
             >
-              🔥 High
+              <Flame className="w-3.5 h-3.5" />
+              <span>High Priority</span>
             </button>
             <button
               onClick={() => setActiveTab('checklist')}
-              className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-semibold transition-all ${
                 activeTab === 'checklist'
                   ? 'bg-emerald-600 text-white'
                   : 'bg-slate-800 text-slate-400 hover:text-emerald-400'
               }`}
             >
-              ☑️ Subtasks
+              <CheckSquare className="w-3.5 h-3.5" />
+              <span>Subtasks</span>
             </button>
           </div>
         </div>
@@ -239,7 +243,10 @@ export default function Home() {
           {/* Header toolbar */}
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800/80">
             <div className="flex items-center gap-3">
-              <h3 className="font-bold text-white text-base">🚀 E-Commerce Platform V2</h3>
+              <div className="flex items-center gap-2">
+                <Rocket className="w-5 h-5 text-blue-400" />
+                <h3 className="font-bold text-white text-base">E-Commerce Platform V2</h3>
+              </div>
               <span className="text-[11px] px-2.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full font-medium">
                 6 Tasks
               </span>

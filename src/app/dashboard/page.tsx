@@ -16,8 +16,25 @@ import {
   Shield,
   Sparkles,
   Users,
+  Rocket,
+  Smartphone,
+  Palette,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+
+const getBoardIcon = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes('commerce') || n.includes('launch') || n.includes('v2')) {
+    return <Rocket className="w-5 h-5 text-blue-400 shrink-0" />;
+  }
+  if (n.includes('mobile') || n.includes('app') || n.includes('ios') || n.includes('android')) {
+    return <Smartphone className="w-5 h-5 text-purple-400 shrink-0" />;
+  }
+  if (n.includes('brand') || n.includes('design') || n.includes('marketing')) {
+    return <Palette className="w-5 h-5 text-amber-400 shrink-0" />;
+  }
+  return <LayoutDashboard className="w-5 h-5 text-blue-400 shrink-0" />;
+};
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -153,10 +170,13 @@ export default function DashboardPage() {
                   >
                     <div>
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold text-white group-hover:text-blue-400 text-base transition-colors line-clamp-1">
-                          {board.name}
-                        </h3>
-                        <span className="text-[11px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {getBoardIcon(board.name)}
+                          <h3 className="font-semibold text-white group-hover:text-blue-400 text-base transition-colors line-clamp-1">
+                            {board.name}
+                          </h3>
+                        </div>
+                        <span className="text-[11px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full shrink-0">
                           Owner
                         </span>
                       </div>
@@ -198,10 +218,13 @@ export default function DashboardPage() {
                   >
                     <div>
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-semibold text-white group-hover:text-purple-400 text-base transition-colors line-clamp-1">
-                          {board.name}
-                        </h3>
-                        <span className="text-[11px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {getBoardIcon(board.name)}
+                          <h3 className="font-semibold text-white group-hover:text-purple-400 text-base transition-colors line-clamp-1">
+                            {board.name}
+                          </h3>
+                        </div>
+                        <span className="text-[11px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-full shrink-0">
                           Shared
                         </span>
                       </div>
