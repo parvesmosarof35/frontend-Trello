@@ -18,6 +18,14 @@ A modern, responsive, glassmorphic Kanban Board web application built with **Nex
 
 ---
 
+## 📺 Project Demo & Video Walkthrough
+
+[![Watch Demo Video](https://img.youtube.com/vi/ClcqtxuRWcw/maxresdefault.jpg)](https://youtu.be/ClcqtxuRWcw)
+
+> 💡 **Tip**: Click the thumbnail above or [watch directly on YouTube](https://youtu.be/ClcqtxuRWcw) to see the full walkthrough and live features in action.
+
+---
+
 ## 🔑 Pre-seeded Demo Credentials
 
 You can immediately log in to test the application using either of the pre-seeded accounts:
